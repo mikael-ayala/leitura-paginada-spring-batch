@@ -1,9 +1,11 @@
 package com.devsuperior.user_request_sb.step;
 
 import com.devsuperior.user_request_sb.dto.UserDTO;
+import com.devsuperior.user_request_sb.entities.User;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
+import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,11 +25,13 @@ public class FetchUserDataAndStoreDBStepConfig {
     @Bean
     public Step fetchUserDataAndStoreDBStep(
             ItemReader<UserDTO> fetchUserDataReader,
-            ItemWriter<UserDTO> insertUserDataDBWriter,
+            ItemProcessor<UserDTO, User> selectFieldsUserDataProcessor,
+            ItemWriter<User> insertUserDataDBWriter,
             JobRepository jobRepository) {
         return new StepBuilder("fetchUserDataAndStoreDBStep", jobRepository)
-                .<UserDTO, UserDTO>chunk(chunkSize, transactionManager)
+                .<UserDTO, User>chunk(chunkSize, transactionManager)
                 .reader(fetchUserDataReader)
+                .processor(selectFieldsUserDataProcessor)
                 .writer(insertUserDataDBWriter)
                 .build();
     }
